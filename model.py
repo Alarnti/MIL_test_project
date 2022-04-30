@@ -10,12 +10,6 @@ from torchmetrics import Accuracy, F1Score
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# BATCH_SIZE = 512 if torch.cuda.is_available() else 64
-
-SEED = 42
-seed_everything(SEED, workers=True)
-
 
 class SuperNetMNIST(LightningModule):
     def __init__(
@@ -26,6 +20,7 @@ class SuperNetMNIST(LightningModule):
         batch_size: int = 512,
         ch_size: int = 2,
         learning_rate: float = 5e-4,
+        # device: torch.Device = torch.device("cuda")
     ):
         super().__init__()
 
@@ -38,6 +33,8 @@ class SuperNetMNIST(LightningModule):
 
         self.learning_rate = learning_rate
 
+        # self.device = device
+
         self.conv1_3x3 = nn.Conv2d(1, self.ch_size, 3, padding=1)
         self.conv1_5x5 = nn.Conv2d(1, self.ch_size, 5, padding=2)
 
@@ -46,21 +43,17 @@ class SuperNetMNIST(LightningModule):
         self.conv2_3x3 = nn.Conv2d(ch_size, self.ch_size * 2, 3, padding=1)
         self.conv2_5x5 = nn.Conv2d(ch_size, self.ch_size * 2, 5, padding=2)
 
-        self.fc1 = nn.Linear(2 * self.ch_size * 7 * 7, 128)
-        self.fc2 = nn.Linear(128, self.num_classes)
+        self.fc1 = nn.Linear(2 * self.ch_size * 7 * 7, 16)
+        self.fc2 = nn.Linear(16, self.num_classes)
 
         self.train_multiple = is_train_mult
         self.all_flows = ["1010", "1001", "0110", "0101"]
         self.current_flow = flow_solo
 
-        # Hardcode some dataset specific attributes
-
         self.transform = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    (0.1307,), (0.3081,)
-                ),  # TODO ???????????????????????
+                transforms.Normalize((0.1307,), (0.3081,)),
             ]
         )
 
@@ -68,7 +61,7 @@ class SuperNetMNIST(LightningModule):
         self.F1_score = F1Score(num_classes=self.num_classes, average="macro")
 
     def forward(self, x: Tensor) -> Tensor:
-        x1 = torch.zeros(x.size(0), self.ch_size, x.size(2), x.size(3)).to(DEVICE)
+        x1 = torch.zeros(x.size(0), self.ch_size, x.size(2), x.size(3)).to(self.device)
         if self.current_flow[0] == "1":
             x1 += torch.relu(self.conv1_3x3(x))
         if self.current_flow[1] == "1":
@@ -77,7 +70,7 @@ class SuperNetMNIST(LightningModule):
         x1 = self.maxpool(x1)
 
         x2 = torch.zeros(x1.size(0), self.ch_size * 2, x1.size(2), x1.size(3)).to(
-            DEVICE
+            self.device
         )
         if self.current_flow[2] == "1":
             x2 += F.relu(self.conv2_3x3(x1))
