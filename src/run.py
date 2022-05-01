@@ -21,8 +21,6 @@ seed_everything(SEED, workers=True)
 if __name__ == "__main__":
     configurations = ["1010", "1001", "0110", "0101"]
 
-    configurations = ["1010", "1001", "0110", "0101"]  # '1101', '0111', '1110', '1011'
-
     model = SuperNetMNIST(is_train_mult=True)
     trainer = Trainer(
         gpus=AVAIL_GPUS, max_epochs=20, callbacks=[ModelCheckpoint("logs/together")]
