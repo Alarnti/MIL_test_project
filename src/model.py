@@ -47,7 +47,12 @@ class SuperNetMNIST(LightningModule):
         self.fc2 = nn.Linear(16, self.num_classes)
 
         self.train_multiple = is_train_mult
-        self.all_flows = ["1010", "1001", "0110", "0101"]
+        self.all_flows = [
+            "1010",
+            "1001",
+            "0110",
+            "0101",
+        ]  # ['1010', '1001', '0110', '0101', '1101', '0111', '1110', '1011']
         self.current_flow = flow_solo
 
         self.transform = transforms.Compose(
