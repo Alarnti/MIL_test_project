@@ -19,8 +19,7 @@ class SuperNetMNIST(LightningModule):
         data_dir: str = ".",
         batch_size: int = 512,
         ch_size: int = 2,
-        learning_rate: float = 5e-4,
-        # device: torch.Device = torch.device("cuda")
+        learning_rate: float = 5e-4
     ):
         super().__init__()
 
@@ -52,7 +51,7 @@ class SuperNetMNIST(LightningModule):
             "1001",
             "0110",
             "0101",
-        ]  # ['1010', '1001', '0110', '0101', '1101', '0111', '1110', '1011']
+        ]
         self.current_flow = flow_solo
 
         self.transform = transforms.Compose(
@@ -129,13 +128,6 @@ class SuperNetMNIST(LightningModule):
             return self.load_from_checkpoint(path_pretrained)
         else:
             return self
-
-    #     def on_after_backward(self):
-    #         global_step = self.global_step
-    #         for name, param in self.state_dict().items():
-    #             self.logger.experiment.add_histogram(name, param, global_step)
-    #             if param.requires_grad:
-    #                 self.logger.experiment.add_histogram(f"{name}_grad", param.grad, global_step)
 
     def prepare_data(self):
         MNIST(self.data_dir, train=True, download=True)
